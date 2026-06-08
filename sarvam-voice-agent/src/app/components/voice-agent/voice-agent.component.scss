@@ -1,0 +1,481 @@
+:host {
+  display: block;
+  height: 100vh;
+  font-family: 'DM Sans', sans-serif;
+}
+
+// ── Design tokens ──────────────────────────────────────────
+$bg:        #0a0c10;
+$surface:   #111418;
+$border:    rgba(255,255,255,0.07);
+$text:      #e8eaf0;
+$muted:     rgba(232,234,240,0.45);
+$accent:    #4fffb0;      // electric teal — Sarvam green-ish
+$accent2:   #ff6b6b;      // coral for error / barge-in
+$user-clr:  #6ab4ff;
+$ai-clr:    #4fffb0;
+
+// ── Keyframes ──────────────────────────────────────────────
+@keyframes pulse-ring {
+  0%   { transform: scale(1);    opacity: 0.6; }
+  50%  { transform: scale(1.18); opacity: 0.2; }
+  100% { transform: scale(1);    opacity: 0.6; }
+}
+
+@keyframes listening-ring {
+  0%   { transform: scale(0.95); opacity: 0.8; }
+  100% { transform: scale(1.35); opacity: 0;   }
+}
+
+@keyframes speaking-wave {
+  0%, 100% { transform: scaleY(1);    }
+  25%       { transform: scaleY(1.4); }
+  75%       { transform: scaleY(0.7); }
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes cursor-blink {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0; }
+}
+
+@keyframes fade-slide-up {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0);    }
+}
+
+@keyframes toast-in {
+  from { opacity: 0; transform: translateX(100%); }
+  to   { opacity: 1; transform: translateX(0);    }
+}
+
+// ── Shell ──────────────────────────────────────────────────
+.agent-shell {
+  background: $bg;
+  color: $text;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  overflow: hidden;
+
+  &::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 60% 40% at 50% 0%, rgba(79,255,176,0.06) 0%, transparent 70%),
+      radial-gradient(ellipse 40% 30% at 80% 80%, rgba(106,180,255,0.04) 0%, transparent 60%);
+    pointer-events: none;
+  }
+}
+
+// ── Header ─────────────────────────────────────────────────
+.agent-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 18px 28px;
+  border-bottom: 1px solid $border;
+  background: rgba(17,20,24,0.8);
+  backdrop-filter: blur(12px);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.brand-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: $accent;
+  box-shadow: 0 0 8px $accent;
+}
+
+.brand-name {
+  font-size: 15px;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+}
+
+.btn-reset {
+  background: transparent;
+  border: 1px solid $border;
+  color: $muted;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 13px;
+  padding: 6px 14px;
+  border-radius: 20px;
+  cursor: pointer;
+  transition: all 0.2s;
+
+  &:hover {
+    border-color: rgba(255,255,255,0.2);
+    color: $text;
+  }
+}
+
+// ── Main ───────────────────────────────────────────────────
+.agent-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 40px 24px 100px;
+  overflow-y: auto;
+}
+
+// ── Start gate ─────────────────────────────────────────────
+.start-gate {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  margin-top: 60px;
+  animation: fade-slide-up 0.6s ease both;
+}
+
+.start-title {
+  font-family: 'DM Serif Display', serif;
+  font-size: 42px;
+  font-weight: 400;
+  margin: 0;
+  letter-spacing: -0.02em;
+}
+
+.start-sub {
+  color: $muted;
+  font-size: 14px;
+  margin: 0;
+  letter-spacing: 0.02em;
+}
+
+.btn-start {
+  margin-top: 12px;
+  background: $accent;
+  color: #0a0c10;
+  border: none;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 15px;
+  font-weight: 500;
+  padding: 14px 36px;
+  border-radius: 50px;
+  cursor: pointer;
+  transition: all 0.2s;
+  letter-spacing: 0.01em;
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(79,255,176,0.3);
+  }
+
+  &:active {
+    transform: translateY(0);
+  }
+}
+
+// ── Orb visualizer ─────────────────────────────────────────
+.orb-idle,
+.orb-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 8px;
+}
+
+.orb {
+  position: relative;
+  width: 140px;
+  height: 140px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.orb-core {
+  position: relative;
+  z-index: 3;
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  background: $surface;
+  border: 1px solid $border;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.orb-ring {
+  position: absolute;
+  border-radius: 50%;
+  border: 1px solid $accent;
+  opacity: 0.4;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+// Base idle rings
+.orb-idle .r1, .r1 { width: 80px;  height: 80px; }
+.orb-idle .r2, .r2 { width: 100px; height: 100px; opacity: 0.25; }
+.orb-idle .r3, .r3 { width: 124px; height: 124px; opacity: 0.12; }
+
+.orb-idle .orb-ring {
+  animation: pulse-ring 3s ease-in-out infinite;
+  &.r2 { animation-delay: 0.5s; }
+  &.r3 { animation-delay: 1s;   }
+}
+
+// Listening state
+.orb--listening {
+  .orb-ring {
+    border-color: $user-clr;
+    animation: listening-ring 1s ease-out infinite;
+    &.r2 { animation-delay: 0.25s; }
+    &.r3 { animation-delay: 0.5s;  }
+  }
+  .orb-core {
+    border-color: rgba(106,180,255,0.4);
+    box-shadow: 0 0 20px rgba(106,180,255,0.2);
+  }
+}
+
+// Processing state
+.orb--processing {
+  .orb-ring {
+    border-color: rgba(255,255,255,0.15);
+    animation: none;
+  }
+  .orb-core {
+    border-color: rgba(255,255,255,0.1);
+  }
+}
+
+// Speaking state
+.orb--speaking {
+  .orb-ring {
+    border-color: $accent;
+    animation: listening-ring 0.8s ease-out infinite;
+    &.r2 { animation-delay: 0.15s; }
+    &.r3 { animation-delay: 0.3s;  }
+  }
+  .orb-core {
+    border-color: rgba(79,255,176,0.4);
+    box-shadow: 0 0 24px rgba(79,255,176,0.25);
+  }
+}
+
+// Icons
+.mic-icon, .proc-icon, .wave-icon {
+  width: 28px;
+  height: 28px;
+  stroke: $text;
+}
+
+.orb--listening .mic-icon  { stroke: $user-clr; }
+.orb--speaking  .wave-icon { stroke: $accent;   }
+
+.spin { animation: spin 1.2s linear infinite; }
+
+.state-label {
+  font-size: 13px;
+  color: $muted;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  margin: 0;
+}
+
+// ── Live area ──────────────────────────────────────────────
+.live-area {
+  width: 100%;
+  max-width: 600px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.bubble {
+  padding: 12px 16px;
+  border-radius: 14px;
+  animation: fade-slide-up 0.25s ease;
+  line-height: 1.6;
+}
+
+.bubble--user {
+  background: rgba(106,180,255,0.08);
+  border: 1px solid rgba(106,180,255,0.15);
+  align-self: flex-end;
+  max-width: 80%;
+}
+
+.bubble--assistant {
+  background: rgba(79,255,176,0.05);
+  border: 1px solid rgba(79,255,176,0.12);
+  align-self: flex-start;
+  max-width: 85%;
+}
+
+.bubble-role {
+  display: block;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin-bottom: 4px;
+  opacity: 0.5;
+}
+
+.bubble-text {
+  font-size: 15px;
+}
+
+.cursor-blink {
+  animation: cursor-blink 0.8s ease infinite;
+  color: $accent;
+  font-weight: 300;
+}
+
+// ── Metrics strip ──────────────────────────────────────────
+.metrics-strip {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 28px;
+  padding: 10px 18px;
+  background: $surface;
+  border: 1px solid $border;
+  border-radius: 40px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.metric {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1px;
+
+  &--total .metric-value {
+    color: $accent;
+    font-weight: 500;
+  }
+}
+
+.metric-label {
+  font-size: 10px;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: $muted;
+}
+
+.metric-value {
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+}
+
+.metric-sep {
+  color: rgba(255,255,255,0.15);
+  font-size: 12px;
+  padding-bottom: 2px;
+}
+
+.total-sep {
+  margin: 0 4px;
+}
+
+// ── History ────────────────────────────────────────────────
+.history {
+  width: 100%;
+  max-width: 600px;
+  margin-top: 32px;
+}
+
+.history-title {
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: $muted;
+  margin: 0 0 12px;
+  font-weight: 400;
+}
+
+.history-scroll {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 300px;
+  overflow-y: auto;
+
+  &::-webkit-scrollbar { width: 4px; }
+  &::-webkit-scrollbar-track { background: transparent; }
+  &::-webkit-scrollbar-thumb { background: $border; border-radius: 2px; }
+}
+
+.history-turn {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  padding: 8px 12px;
+  border-radius: 10px;
+  animation: fade-slide-up 0.2s ease;
+
+  &--user {
+    background: rgba(106,180,255,0.05);
+    .history-role { color: $user-clr; }
+  }
+
+  &--assistant {
+    background: rgba(79,255,176,0.04);
+    .history-role { color: $ai-clr; }
+  }
+}
+
+.history-role {
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  min-width: 28px;
+  padding-top: 2px;
+}
+
+.history-text {
+  flex: 1;
+  font-size: 14px;
+  color: rgba(232,234,240,0.75);
+  margin: 0;
+  line-height: 1.5;
+}
+
+.history-latency {
+  font-size: 11px;
+  color: $muted;
+  font-variant-numeric: tabular-nums;
+  align-self: center;
+  flex-shrink: 0;
+}
+
+// ── Error toast ────────────────────────────────────────────
+.error-toast {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  background: rgba(255,107,107,0.12);
+  border: 1px solid rgba(255,107,107,0.3);
+  color: #ff6b6b;
+  padding: 12px 20px;
+  border-radius: 12px;
+  font-size: 14px;
+  animation: toast-in 0.3s ease;
+  z-index: 100;
+  max-width: 360px;
+}

@@ -1,0 +1,132 @@
+<div class="agent-shell">
+
+  <!-- HEADER -->
+  <header class="agent-header">
+    <div class="brand">
+      <span class="brand-dot"></span>
+      <span class="brand-name">Sarvam Voice</span>
+    </div>
+    <button *ngIf="isStarted" class="btn-reset" (click)="resetConversation()" title="Reset conversation">
+      ↺ Reset
+    </button>
+  </header>
+
+  <!-- MAIN CONTENT -->
+  <main class="agent-main">
+
+    <!-- START GATE -->
+    <ng-container *ngIf="!isStarted">
+      <div class="start-gate">
+        <div class="orb-idle">
+          <div class="orb-ring r1"></div>
+          <div class="orb-ring r2"></div>
+          <div class="orb-ring r3"></div>
+          <svg class="mic-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/>
+            <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
+            <line x1="12" y1="19" x2="12" y2="23"/>
+            <line x1="8" y1="23" x2="16" y2="23"/>
+          </svg>
+        </div>
+        <h1 class="start-title">Voice AI</h1>
+        <p class="start-sub">Powered by Sarvam · Hindi, English & more</p>
+        <button class="btn-start" (click)="startSession()">Start Conversation</button>
+      </div>
+    </ng-container>
+
+    <!-- ACTIVE SESSION -->
+    <ng-container *ngIf="isStarted">
+
+      <!-- ORB VISUALIZER -->
+      <div class="orb-container">
+        <div class="orb" [class]="'orb--' + state">
+          <div class="orb-ring r1"></div>
+          <div class="orb-ring r2"></div>
+          <div class="orb-ring r3"></div>
+          <div class="orb-core">
+            <svg *ngIf="state === 'idle' || state === 'listening'" class="mic-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/>
+              <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
+              <line x1="12" y1="19" x2="12" y2="23"/>
+              <line x1="8" y1="23" x2="16" y2="23"/>
+            </svg>
+            <svg *ngIf="state === 'processing'" class="proc-icon spin" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <circle cx="12" cy="12" r="10" stroke-dasharray="32" stroke-dashoffset="10"/>
+            </svg>
+            <svg *ngIf="state === 'speaking'" class="wave-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <path d="M3 12h2l2-6 2 12 2-8 2 4 2-2h4"/>
+            </svg>
+          </div>
+        </div>
+        <p class="state-label">{{ getStateLabel() }}</p>
+      </div>
+
+      <!-- LIVE TRANSCRIPT -->
+      <div class="live-area">
+        <div *ngIf="transcript" class="bubble bubble--user">
+          <span class="bubble-role">You</span>
+          <span class="bubble-text">{{ transcript }}</span>
+        </div>
+        <div *ngIf="assistantText" class="bubble bubble--assistant">
+          <span class="bubble-role">Assistant</span>
+          <span class="bubble-text">{{ assistantText }}<span *ngIf="state === 'speaking'" class="cursor-blink">|</span></span>
+        </div>
+      </div>
+
+      <!-- LATENCY METRICS -->
+      <div class="metrics-strip">
+        <div class="metric">
+          <span class="metric-label">VAD</span>
+          <span class="metric-value">{{ formatMs(metrics.vadLatency) }}</span>
+        </div>
+        <div class="metric-sep">→</div>
+        <div class="metric">
+          <span class="metric-label">STT</span>
+          <span class="metric-value">{{ formatMs(metrics.sttLatency) }}</span>
+        </div>
+        <div class="metric-sep">→</div>
+        <div class="metric">
+          <span class="metric-label">LLM TTFT</span>
+          <span class="metric-value">{{ formatMs(metrics.llmTtft) }}</span>
+        </div>
+        <div class="metric-sep">→</div>
+        <div class="metric">
+          <span class="metric-label">TTS</span>
+          <span class="metric-value">{{ formatMs(metrics.ttsFirstByte) }}</span>
+        </div>
+        <div class="metric-sep total-sep">|</div>
+        <div class="metric metric--total">
+          <span class="metric-label">Total</span>
+          <span class="metric-value">{{ formatMs(metrics.totalLatency) }}</span>
+        </div>
+      </div>
+
+      <!-- CONVERSATION HISTORY -->
+      <div class="history" *ngIf="history.length > 0">
+        <h3 class="history-title">Conversation</h3>
+        <div class="history-scroll">
+          <div
+            *ngFor="let turn of history"
+            class="history-turn"
+            [class.history-turn--user]="turn.role === 'user'"
+            [class.history-turn--assistant]="turn.role === 'assistant'"
+          >
+            <span class="history-role">{{ turn.role === 'user' ? 'You' : 'AI' }}</span>
+            <p class="history-text">{{ turn.text }}</p>
+            <span *ngIf="turn.metrics?.totalLatency" class="history-latency">
+              {{ formatMs(turn.metrics!.totalLatency) }}
+            </span>
+          </div>
+        </div>
+      </div>
+
+    </ng-container>
+
+  </main>
+
+  <!-- ERROR TOAST -->
+  <div class="error-toast" *ngIf="error">
+    <span>⚠ {{ error }}</span>
+  </div>
+
+</div>
